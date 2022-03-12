@@ -1,0 +1,69 @@
+version: "2.0"
+services:
+  postgres:
+    image: LuoMajian/postgres
+    params:
+      storage:
+        data:
+          mount: /var/lib/postgres
+  grafana:
+    image: grafana/grafana
+    expose:
+      - port: 3000
+        as: 80
+        to:
+          - global: true
+        accept:
+          - LuoMajian.localhost
+    params:
+      storage:
+        data:
+          mount: /var/lib/grafana
+profiles:
+  compute:
+    grafana-profile:
+      resources:
+        cpu:
+          units: 0.5
+        memory:
+          size: 512Mi
+        storage:
+          - size: 512Mi
+          - name: data
+            size: 512Mi
+            attributes:
+              persistent: true
+              class: beta3
+    postgres-profile:
+      resources:
+        cpu:
+          units: 0.5
+        memory:
+          size: 256Mi
+        storage:
+          - size: 512Mi
+          - name: data
+            size: 5Gi
+            attributes:
+              persistent: true
+              class: beta3
+  placement:
+    westcoast:
+      attributes:
+        region: us-west
+      pricing:
+        grafana-profile:
+          denom: uakt
+          amount: 100.1
+        postgres-profile:
+          denom: uakt
+          amount: 100.1
+deployment:
+  grafana:
+    westcoast:
+      profile: grafana-profile
+      count: 1
+  postgres:
+    westcoast:
+      profile: postgres-profile
+      count: 1
